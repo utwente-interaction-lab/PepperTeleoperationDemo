@@ -1,7 +1,7 @@
 # Pepper Teleoperation — MediaPipe
 
 **Repository:** [github.com/utwente-interaction-lab/PepperTeleoperationDemo](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo)  
-**VR package:** [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) (`PepperVR.unitypackage`)
+**VR package:** [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) (`PepperVrDemoPackage.unitypackage` — requires OpenXR + XR Interaction Toolkit)
 
 Control a SoftBank **Pepper** robot in real time using your body movements captured via a standard webcam and [MediaPipe Pose](https://google.github.io/mediapipe/solutions/pose).
 
@@ -22,7 +22,7 @@ cd PepperTeleoperationDemo
 | **Windows PC** | Yes | Tested on Windows 10/11; runs the GUI, tracker, and HTTP video server |
 | **Webcam** | Yes (MediaPipe path) | USB camera for body pose; good lighting helps tracking |
 | **Wi‑Fi / Ethernet LAN** | Yes | PC and Pepper on the same network; no public internet required |
-| **Meta Quest (or similar) + Unity** | Optional | Import `PepperVR.unitypackage` into your XR project — [`docs/UNITY_VR_SETUP.md`](docs/UNITY_VR_SETUP.md) |
+| **Meta Quest (or similar) + Unity** | Optional | `PepperVrDemoPackage` + OpenXR + XR Interaction Toolkit — [`docs/UNITY_VR_SETUP.md`](docs/UNITY_VR_SETUP.md) |
 | **Azure Kinect DK** | Optional | Alternative tracker; see `requirements_azure.txt` and set `TRACKER_BACKEND=azure` in `Start_Pepper_Azure.bat` |
 
 **Example IPs in this repo** (`192.168.1.61` for Pepper, `192.168.1.123` for the teleop PC) are lab defaults. Set your real addresses in the GUI and in Unity **Server Url** / **Stream Base** fields.
@@ -50,7 +50,7 @@ cd PepperTeleoperationDemo
 | **Choregraphe Suite** | 2.5.x | NAOqi Python bindings (`qi`, `naoqi`) — not on PyPI |
 | **Miniconda / Anaconda** | Latest | Creates `pepper27_32` (Python 2.7 **32-bit**) for the GUI |
 | **Python** | 3.10 | MediaPipe body tracker (`openpose_wrap/`) |
-| **Unity** | 2022.2+ (optional) | Your own XR project + `PepperVR.unitypackage` — [`docs/UNITY_VR_SETUP.md`](docs/UNITY_VR_SETUP.md) |
+| **Unity** | 2022.2+ (optional) | OpenXR, XR Interaction Toolkit (+ Starter Assets), then `PepperVrDemoPackage` — [`docs/UNITY_VR_SETUP.md`](docs/UNITY_VR_SETUP.md) |
 
 **Python dependencies (installed by `setup.bat`):**
 
@@ -149,10 +149,10 @@ After the first Pepper camera frame, the session log shows the **VR stream URL**
 ## VR headset (Unity)
 
 1. Run the Python stack and **Connect** to Pepper (same as desktop use).
-2. Install Unity **2022.2+** with **OpenXR** (or your headset plug-in).
-3. **Import** `PepperVR.unitypackage` from [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) into your Unity XR project.
-4. Set your teleop PC IP on **Stream Base** / **Server Base** (see guide).
-5. Press Play; enable **VR Drive** in the Python GUI for headset locomotion.
+2. Install **OpenXR**, **XR Interaction Toolkit**, and **Starter Assets** (see guide).
+3. **Import** `PepperVrDemoPackage.unitypackage` from [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) — use package scripts only, not `unity_pepper_vr/` from git.
+4. Open the demo scene (must include **XR Interaction Manager**).
+5. Set teleop PC IP on **Stream Base** / **Server Base** → Play → **VR Drive** in Python GUI.
 
 | Doc | Content |
 |-----|---------|
@@ -195,7 +195,7 @@ pepper_openpose_teleoperation/
 │   └── azure_body_tracker.py       (optional)
 ├── pepper_teleoperation/
 │   └── pepper_gui.py
-└── unity_pepper_vr/                (VR C# scripts; scene ships in .unitypackage)
+└── unity_pepper_vr/                (reference scripts; use PepperVrDemoPackage from Releases)
 ```
 
 ---
@@ -206,7 +206,7 @@ pepper_openpose_teleoperation/
 |----------|----------|
 | This README | Install, run, troubleshoot |
 | [`docs/GITHUB_PUBLISH.md`](docs/GITHUB_PUBLISH.md) | Publishing and updating on GitHub |
-| [`docs/UNITY_VR_SETUP.md`](docs/UNITY_VR_SETUP.md) | Import `PepperVR.unitypackage`, configure, run |
+| [`docs/UNITY_VR_SETUP.md`](docs/UNITY_VR_SETUP.md) | XRI + OpenXR deps, import `PepperVrDemoPackage`, configure, run |
 | [`unity_pepper_vr/README.md`](unity_pepper_vr/README.md) | VR features (depth, locomotion, manual build) |
 | [`docs/Unity_VR_Pepper_View.md`](docs/Unity_VR_Pepper_View.md) | HTTP streams and technical reference |
 

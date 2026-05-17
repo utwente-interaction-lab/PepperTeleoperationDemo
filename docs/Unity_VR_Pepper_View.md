@@ -1,6 +1,6 @@
 # Pepper VR — HTTP streams and technical reference
 
-> **Installation:** import **`PepperVR.unitypackage`** — see **[UNITY_VR_SETUP.md](UNITY_VR_SETUP.md)**.
+> **Installation:** **`PepperVrDemoPackage`** (OpenXR + XR Interaction Toolkit required) — **[UNITY_VR_SETUP.md](UNITY_VR_SETUP.md)**.
 
 The teleop GUI runs a small HTTP server on **port 8080** on the operator PC. While Pepper's cameras are subscribed, JPEG frames are published at:
 

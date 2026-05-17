@@ -48,9 +48,9 @@ Use a **Personal Access Token** when Git asks for a password (not your GitHub ac
 
 After the code is on GitHub:
 
-1. Export **`PepperVR.unitypackage`** from Unity (see [`releases/README.md`](../releases/README.md)).
+1. Export **`PepperVrDemoPackage.unitypackage`** from Unity (see [`releases/README.md`](../releases/README.md)).
 2. Open https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases → **Draft a new release**.
-3. Tag e.g. `v1.0.0`, attach `PepperVR.unitypackage`, note Unity version + URP + OpenXR in the description.
+3. Tag e.g. `v1.0.0`, attach the package; note Unity + URP + **XRI + OpenXR + Starter Assets** + demo scene path.
 4. Publish the release so [`UNITY_VR_SETUP.md`](UNITY_VR_SETUP.md) download links work.
 
 ---
@@ -80,4 +80,4 @@ git push
 
 - **Clone:** `git clone https://github.com/utwente-interaction-lab/PepperTeleoperationDemo.git`
 - **Setup:** `setup.bat` → `Start_Pepper_Azure.bat`
-- **VR:** import `PepperVR.unitypackage` from [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) — see [UNITY_VR_SETUP.md](UNITY_VR_SETUP.md)
+- **VR:** `PepperVrDemoPackage` from [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) — see [UNITY_VR_SETUP.md](UNITY_VR_SETUP.md) (XRI + OpenXR required)

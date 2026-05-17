@@ -1,8 +1,10 @@
 # Unity VR setup (Pepper teleoperation)
 
-VR is delivered as a **Unity package** (`PepperVR.unitypackage`) that you import into **your own** Unity XR project. There is no standalone Unity project to download.
+VR is delivered as **`PepperVrDemoPackage.unitypackage`** (GitHub Releases). Import it into **your own** Unity project after installing the XR dependencies below.
 
 The **Python teleop stack must be running first** — Unity only talks to the HTTP server on your operator PC.
+
+> **Use the package scripts, not the repo folder.** The GitHub repo includes [`unity_pepper_vr/`](../unity_pepper_vr/) for reference only. After importing **`PepperVrDemoPackage`**, all Pepper VR behaviour comes from the package assets. If you previously copied `unity_pepper_vr/Assets` into your project, **remove those copies** to avoid duplicate types and outdated scripts.
 
 ---
 
@@ -10,52 +12,81 @@ The **Python teleop stack must be running first** — Unity only talks to the HT
 
 | Item | Notes |
 |------|--------|
-| **Your Unity project** | **2022.2 LTS** or newer, with **XR Plug-in Management** + **OpenXR** (or your headset’s plug-in) |
-| **`PepperVR.unitypackage`** | From **[Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases)** |
-| **Python teleop running** | `Start_Pepper_Azure.bat` → **Connect** to Pepper in the GUI |
+| **Unity** | **2022.2 LTS** or newer (LAN `http://` camera streams) |
+| **`PepperVrDemoPackage.unitypackage`** | [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) |
+| **Python teleop** | `Start_Pepper_Azure.bat` → **Connect** to Pepper |
 | **XR headset** | e.g. Meta Quest via Link / Air Link |
-| **Same LAN** | VR PC and teleop PC on the same Wi‑Fi/Ethernet |
+| **Same LAN** | VR PC and teleop PC |
 
 ---
 
-## 1. Prepare your Unity project
+## 1. Install Unity XR dependencies (before importing the package)
 
-If you do not already have an XR project:
+Install these **in order** via **Window → Package Manager** (Unity Registry unless noted).
 
-1. **Unity Hub → New project** → **3D (URP)** template (or your lab’s URP template).
-2. **Edit → Project Settings → XR Plug-in Management** → install/enable **OpenXR** (PC) and your headset if prompted.
-3. Confirm you can enter Play mode with the headset (empty scene is fine).
+### Required packages
+
+| Package | Why |
+|---------|-----|
+| **XR Plugin Management** | Enables XR in the project |
+| **OpenXR Plugin** | PC VR / Quest Link (recommended) |
+| **XR Interaction Toolkit** | Wrist UI, ray interactors, locomotion coexistence with the demo scene |
+| **XR Interaction Toolkit Starter Assets** | Sample **XR Origin** rig, input actions, and prefabs the demo scene expects |
+
+**OpenXR setup**
+
+1. **Edit → Project Settings → XR Plug-in Management**
+2. Under **PC Standalone** (and **Android** if you build to Quest standalone), enable **OpenXR**
+3. Use **XR Plug-in Management → OpenXR** to pick your runtime / controller profile if prompted
+
+**XR Interaction Manager**
+
+The demo scene expects an **XR Interaction Manager** in the hierarchy (usually on or under the **XR Origin** from Starter Assets).
+
+- If you use the **VR template** or import **Starter Assets**, this is often created automatically.
+- Otherwise: **GameObject → XR → XR Interaction Manager** (or add the component to your XR Origin root).
+
+Without it, wrist UI and XRI interactors will not work correctly.
+
+### Recommended project template
+
+**Unity Hub → New project → 3D (URP)** or the **VR** template, then add any missing packages from the table above.
+
+Confirm a blank XR scene runs in Play mode with your headset before importing the Pepper package.
 
 ---
 
-## 2. Import `PepperVR.unitypackage`
+## 2. Import `PepperVrDemoPackage`
 
-1. Download **`PepperVR.unitypackage`** from **[Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases)**.
-2. In your project: **Assets → Import Package → Custom Package…** → select the file.
-3. Leave all items checked → **Import**.
-4. Open the Pepper VR scene from the Project window (e.g. **`Assets/PepperVR/Scenes/PepperVR_Teleop.unity`** — path matches how the package was exported).
+1. Download **`PepperVrDemoPackage.unitypackage`** from **[Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases)**.
+2. **Assets → Import Package → Custom Package…** → select the file → **Import all**.
+3. Open the **demo scene** from the Project window (path is inside the package, e.g. under `Assets/PepperVrDemo/` or similar — use the scene named in the Release notes).
+4. **Do not** merge in scripts from `unity_pepper_vr/` in the cloned Git repo; the package is the supported source.
 
-The package includes:
+### If you already copied repo scripts into `Assets/`
 
-- Pre-built **VR scene** (camera views, wrist UI, locomotion wired)
-- **Scripts** and **Tools → Pepper VR** editor menus
+1. Delete the old folder (e.g. duplicated `Assets/Scripts/` from `unity_pepper_vr`).
+2. Re-import **`PepperVrDemoPackage`** if needed.
+3. Use only components and scenes from the package.
+
+Unity resolves script references by **class name**. Duplicate copies cause “script missing”, wrong behaviour, or compile errors — always prefer the **package** version.
 
 ---
 
 ## 3. Configure network addresses
 
-| Role | Example | Where to set it |
-|------|---------|-----------------|
-| **Pepper (robot)** | `192.168.1.61:9559` | Python GUI **Connect** only |
-| **Teleop PC (streams)** | `http://192.168.1.123:8080` | Unity **Stream Base** / **Server Base** |
+| Role | Example | Where |
+|------|---------|--------|
+| **Pepper** | `192.168.1.61:9559` | Python GUI **Connect** only |
+| **Teleop PC** | `http://192.168.1.123:8080` | Package scene: **Stream Base** / **Server Base** |
 
-- Teleop PC IP: `ipconfig` → IPv4 (Windows).
-- Unity on the **same PC** as the GUI: use `http://127.0.0.1:8080`.
+- Teleop PC IP: `ipconfig` → IPv4.
+- Unity on the **same PC** as the GUI: `http://127.0.0.1:8080`.
 
-In the imported scene, set:
+On package components (`PepperCameraStream`, `VRLocomotionSender`, `VRGuiBridge`, etc.):
 
-- `PepperCameraStream` → **Stream Base** = `http://<teleop-pc-ip>:8080`
-- `VRLocomotionSender` / `VRGuiBridge` → **Server Base** = same base URL (no path)
+- **Stream Base** = `http://<teleop-pc-ip>:8080`
+- **Server Base** = same URL (no path)
 
 ---
 
@@ -63,31 +94,35 @@ In the imported scene, set:
 
 Unity 2022.2+ blocks `http://` unless allowed:
 
-1. **Tools → Pepper VR → Allow HTTP for LAN camera streams**, **or**
+1. **Tools → Pepper VR → Allow HTTP for LAN camera streams** (included in the package), **or**
 2. **Edit → Project Settings → Player → Other Settings → Allow downloads over HTTP → Always allowed**
 
 ---
 
 ## 5. Run
 
-1. Run **`Start_Pepper_Azure.bat`** and **Connect** to Pepper.
-2. Browser test on the teleop PC: `http://127.0.0.1:8080/pepper.html` (live video).
-3. Unity: open the Pepper VR scene → fix **Stream Base** if needed → **Play**.
-4. Optional: in the Python GUI, **VR Drive (Unity Headset)** for thumbstick locomotion.
+1. **`Start_Pepper_Azure.bat`** → **Connect** to Pepper.
+2. Browser: `http://127.0.0.1:8080/pepper.html` (live video on teleop PC).
+3. Unity: open the **Pepper VR demo scene** from the package → set **Stream Base** → **Play**.
+4. Python GUI: **VR Drive (Unity Headset)** for thumbstick locomotion.
 
-Feature details (depth HUD, locomotion, wrist UI): [`unity_pepper_vr/README.md`](../unity_pepper_vr/README.md).
+The package scene is built for **XR Interaction Toolkit** + **OpenXR**: use the provided **XR Origin** / wrist UI setup rather than rebuilding from scratch.
+
+Feature reference (depth HUD, locomotion tuning): [`unity_pepper_vr/README.md`](../unity_pepper_vr/README.md) — behaviour matches the package scripts when versions are in sync.
 
 ---
 
-## HTTP streams
+## Dependency checklist
 
-| Path | Camera |
-|------|--------|
-| `/pepper.jpg` | Forehead RGB (main view) |
-| `/pepper_bottom.jpg` | Chest camera |
-| `/pepper_depth.jpg` | Depth (grayscale) |
+Before reporting issues, confirm:
 
-See [`Unity_VR_Pepper_View.md`](Unity_VR_Pepper_View.md) for API and firewall notes.
+- [ ] **OpenXR** enabled for your build target (PC Standalone at minimum)
+- [ ] **XR Interaction Toolkit** installed
+- [ ] **XR Interaction Toolkit Starter Assets** installed (sample rig / input)
+- [ ] Scene contains **XR Interaction Manager**
+- [ ] **`PepperVrDemoPackage`** imported; no duplicate Pepper scripts from `unity_pepper_vr/` in `Assets/`
+- [ ] **Allow HTTP** for LAN streams
+- [ ] **Stream Base** points at the teleop PC, not Pepper’s NAOqi IP
 
 ---
 
@@ -95,10 +130,12 @@ See [`Unity_VR_Pepper_View.md`](Unity_VR_Pepper_View.md) for API and firewall no
 
 | Symptom | Fix |
 |---------|-----|
+| Missing scripts / pink materials | Install URP + packages above; re-import package; remove duplicate repo scripts |
+| Wrist UI / pointers dead | Add or enable **XR Interaction Manager**; check Starter Assets / XR Origin in scene |
+| Controllers move player instead of Pepper | In scene, enable **Disable XR rig move** on `VRLocomotionSender` (or wrist toggle); see package README |
 | White quad / insecure HTTP | **Allow HTTP for LAN** (step 4) |
-| No video | Browser test first; correct **Stream Base**; firewall **TCP 8080** on teleop PC |
-| Pepper won’t walk from VR | **VR Drive** in Python GUI; **Server Base** = teleop PC |
-| Import errors / pink materials | Match **URP** and Unity **2022.2+** to the version noted on the Release |
+| No video | Browser test; **Stream Base** IP; firewall **TCP 8080** on teleop PC |
+| Pepper won’t walk | **VR Drive** in Python GUI; **Server Base** = teleop PC |
 
 ```powershell
 netsh advfirewall firewall add rule name="Pepper teleop stream" dir=in action=allow protocol=TCP localport=8080
@@ -106,6 +143,6 @@ netsh advfirewall firewall add rule name="Pepper teleop stream" dir=in action=al
 
 ---
 
-## Source scripts in this repo (maintainers)
+## Maintainers
 
-The folder [`unity_pepper_vr/`](../unity_pepper_vr/) holds the same C# sources used to build the package. End users should **not** need it — only import the `.unitypackage`. Re-export the package from Unity when scripts change; see [`releases/README.md`](../releases/README.md).
+Export **`PepperVrDemoPackage.unitypackage`** from the lab Unity project (with XRI + OpenXR + Starter Assets already present). See [`releases/README.md`](../releases/README.md). Keep [`unity_pepper_vr/`](../unity_pepper_vr/) in git aligned with the package export, but tell users to **only** install the Release `.unitypackage`.

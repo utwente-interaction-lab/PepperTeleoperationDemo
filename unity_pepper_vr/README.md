@@ -1,9 +1,10 @@
 # Unity VR — scripts and feature reference
 
-> **Start here:** [`docs/UNITY_VR_SETUP.md`](../docs/UNITY_VR_SETUP.md) — download **`PepperVR.unitypackage`** from [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases) and import it into your Unity XR project.  
-> Use **this file** for depth HUD, locomotion, and troubleshooting after import.
+> **Start here:** [`docs/UNITY_VR_SETUP.md`](../docs/UNITY_VR_SETUP.md)  
+> Download **`PepperVrDemoPackage.unitypackage`** from [Releases](https://github.com/utwente-interaction-lab/PepperTeleoperationDemo/releases). Install **OpenXR**, **XR Interaction Toolkit**, and **Starter Assets** first.  
+> **Do not copy this folder into your Unity project** — the package scripts override these; duplicates cause errors.
 
-This folder is **source code** for maintainers. End users only need the **`.unitypackage`** (pre-built scene inside the package).
+This folder is a **maintainer mirror** of the C# sources shipped inside **`PepperVrDemoPackage`**. End users import the Release package only.
 
 | Contents | Purpose |
 |----------|---------|
@@ -48,7 +49,7 @@ To check the teleop PC IP: `ipconfig` -> IPv4.
 
 ## Manual setup (maintainers only)
 
-Use this only when developing from `unity_pepper_vr/Assets/` in the repo — **not** for normal users (they import `PepperVR.unitypackage`).
+Use this only when developing in the lab Unity project before re-exporting **`PepperVrDemoPackage`** — **not** for end users.
 
 ### 1. Add the scripts
 
