@@ -1,0 +1,9 @@
+# Optional — Azure Kinect DK body tracker (Python 3.10)
+# Also requires Azure Kinect Sensor SDK 1.4.x and Body Tracking SDK 1.1.x (Windows).
+# Install with:  py -3.10 -m pip install -r requirements_azure.txt
+# Switch tracker in Start_Pepper_Azure.bat:  set TRACKER_BACKEND=azure
+
+pykinect_azure
+opencv-python
+pyzmq
+numpy

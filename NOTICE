@@ -1,0 +1,24 @@
+Pepper OpenPose / MediaPipe Teleoperation
+=========================================
+
+This project includes software from multiple sources. The Python teleoperation
+code in this repository is licensed under the Apache License 2.0 (see LICENSE).
+
+Third-party components (separate licenses — not included in this repo)
+----------------------------------------------------------------------
+
+- SoftBank Robotics Choregraphe Suite 2.5 — provides NAOqi Python bindings (`qi`, `naoqi`).
+  Requires a SoftBank Robotics Community account and acceptance of their terms.
+- SoftBank Pepper robot — hardware and NAOqi OS governed by SoftBank / vendor terms.
+- Google MediaPipe — Apache License 2.0 (installed via pip for the body tracker).
+- OpenCV — Apache License 2.0 (installed via pip).
+- NumPy, SciPy, Matplotlib, PyZMQ, Pillow — per their respective PyPI licenses.
+- Unity Engine and XR packages — Unity Software License (if you use the VR client).
+- Optional: Microsoft Azure Kinect SDK and Body Tracking SDK (if using `azure_body_tracker.py`).
+
+Inherited baseline
+------------------
+
+Parts of `pepper_teleoperation/` derive from an earlier Pepper teleoperation
+codebase (2019, Apache 2.0). This repository extends that stack with MediaPipe
+tracking, VR integration, and lab-specific documentation.

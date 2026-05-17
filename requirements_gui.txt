@@ -1,0 +1,15 @@
+# Python 2.7 32-bit (pepper27_32 conda env) - Pepper GUI
+# NOTE: qi and naoqi are NOT listed here - they come from Choregraphe Suite 2.5
+#       and are added to PYTHONPATH automatically by Start_Pepper_Azure.bat.
+#
+# Install with:
+#   set CONDA_FORCE_32BIT=1
+#   conda create -n pepper27_32 python=2.7 -y
+#   conda activate pepper27_32
+#   pip install -r requirements_gui.txt
+
+numpy
+scipy
+matplotlib
+pyzmq
+Pillow

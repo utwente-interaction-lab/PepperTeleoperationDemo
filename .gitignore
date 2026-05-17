@@ -1,0 +1,58 @@
+# -- Python -------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# -- Logs (generated at runtime, don't commit) --------------------------------
+logs/
+
+# -- Recorded experiment data (large dumps, may contain participant names) -----
+pepper_teleoperation/angles_data/
+openpose_wrap/keypoints_data/
+openpose_wrap/video_data/
+
+# -- VS Code / IDE -------------------------------------------------------------
+.vscode/
+.idea/
+*.suo
+*.user
+
+# -- get-pip.py (not needed in repo) ------------------------------------------
+get-pip.py
+
+# -- OS files ------------------------------------------------------------------
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# -- Unity (if you open unity_pepper_vr as a full project) ---------------------
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+UserSettings/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# -- Local env / secrets -------------------------------------------------------
+.env
+.env.*
+*.pem

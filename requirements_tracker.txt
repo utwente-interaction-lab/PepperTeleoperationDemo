@@ -1,0 +1,7 @@
+# Python 3.10 - MediaPipe body tracker
+# Install with:  py -3.10 -m pip install -r requirements_tracker.txt
+
+mediapipe
+opencv-python
+pyzmq
+numpy
