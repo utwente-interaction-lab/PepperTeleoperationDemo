@@ -40,6 +40,9 @@ cd PepperTeleoperationDemo
 | **Tablet Feed** | Streams your MediaPipe camera to Pepper's chest tablet so people near the robot can see the operator |
 | **VR / Unity** | Pepper's onboard camera at `http://<PC>:8080/pepper.jpg`; VR scene via Unity package — [docs/UNITY_VR_SETUP.md](docs/UNITY_VR_SETUP.md) |
 | **Keyboard Teleop** | WASD + Q/E to move Pepper from the keyboard |
+| **NAO support** | Auto-detects NAO on connect and disables wheel-style driving (NAO would walk); Arm Mirror still works |
+| **NAO Dance Study** | Operator panel for scripted head/shoulders/knees/toes takes with four struggle responses — [`docs/NAO_DANCE_STUDY.md`](docs/NAO_DANCE_STUDY.md), `Start_NAO_Study.bat` |
+| **Browser control panel** | `web_app.py` serves the UI at `http://127.0.0.1:8000`: live webcam + robot camera, mode toggles, hold-to-drive pad, NAO Study tab, light/dark theme. Works offline (no CDN) |
 
 ---
 
@@ -131,14 +134,23 @@ py -3.10 -m pip install -r requirements_tracker.txt
 Start_Pepper_Azure.bat
 ```
 
-This opens two windows:
+This opens two console windows and the control panel in your browser:
 1. **Body Tracker** - MediaPipe webcam feed (keep it open, don't close it)
-2. **Pepper GUI** - control panel
+2. **Pepper GUI** - the control server; closing this window shuts the panel down
+3. **Browser** - the control panel at `http://127.0.0.1:8000` (reopen it any time)
 
-**First steps in the GUI:**
-1. Enter Pepper's IP address (default `192.168.1.61`) and click **Connect**
-2. Click **Start Arm Mirror (MediaPipe)** and stand in front of the webcam
-3. Optionally click **Show Operator on Pepper Tablet** - people near Pepper will see you
+**First steps in the panel:**
+1. Enter the robot's IP address (default `192.168.1.61`) and click **Connect**
+2. Turn on **Arm mirror** and stand in front of the webcam - your skeleton and the robot's camera show side by side
+3. Optionally turn on **Tablet feed** (Pepper) - people near Pepper will see you
+
+The **NAO Study** tab runs the dance-study takes ([docs/NAO_DANCE_STUDY.md](docs/NAO_DANCE_STUDY.md)).
+**Stop all** (or `Esc`) stops every mode and any running take.
+
+Options (`pepper_teleoperation/web_app.py --help`): `--lan` to control from another
+device on the network, `--connect --ip <robot>` to connect on start, `--no-tracker`.
+The previous Tk window is still available: set `GUI_SCRIPT=pepper_gui.py` at the top of
+`Start_Pepper_Azure.bat`.
 
 Logs are saved to the `logs/` folder if anything goes wrong.
 

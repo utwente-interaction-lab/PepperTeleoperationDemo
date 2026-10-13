@@ -57,6 +57,8 @@ from GUI_material.image_label import ImageLabel
 from utils.speech_thread import SpeechThread
 from utils.ok_pepper_thread import OkPepperThread
 from utils.pepper_approach_control_thread import PepperApproachControl
+from utils.pepper_ask_gestures import play as play_ask_gesture
+from utils.nao_dance import detect_robot_type
 
 # ---------------------------------------------------------------------------
 # Design tokens
@@ -446,6 +448,7 @@ class MjpegServer(threading.Thread):
       /pepper.jpg         - top (forehead) camera
       /pepper_bottom.jpg  - bottom (mouth) camera
       /pepper_depth.jpg   - depth sensor as grayscale (see docs)
+      /ask.html           - tablet prompt: "Please place the object in my hand"
       /vr_move            - POST JSON {x, y, theta, head_yaw, head_pitch}
       /stream             - classic MJPEG of operator feed (desktop browsers)
 
@@ -523,6 +526,27 @@ class MjpegServer(threading.Thread):
         b"setTimeout(load,100);}else{setTimeout(load,400);}};"
         b"xhr.onerror=function(){setTimeout(load,500);};xhr.send();}load();</script>"
         b"</body></html>"
+    )
+
+    # Full-screen ask prompt for Pepper's chest tablet (ideal demo).
+    _HTML_ASK = (
+        b"<!DOCTYPE html><html><head>"
+        b"<meta charset='utf-8'>"
+        b"<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        b"<style>"
+        b"*{margin:0;padding:0;box-sizing:border-box}"
+        b"body{width:100vw;height:100vh;display:flex;align-items:center;"
+        b"justify-content:center;background:#0b1e33;color:#f5f7fa;"
+        b"font-family:Segoe UI,Helvetica,Arial,sans-serif;text-align:center;"
+        b"padding:28px}"
+        b".box{max-width:92%}"
+        b".hint{font-size:18px;letter-spacing:.12em;text-transform:uppercase;"
+        b"color:#7ec8ff;margin-bottom:18px;font-weight:600}"
+        b".msg{font-size:42px;line-height:1.25;font-weight:700}"
+        b"</style></head><body><div class='box'>"
+        b"<div class='hint'>Pepper</div>"
+        b"<div class='msg'>Please place the object in my hand</div>"
+        b"</div></body></html>"
     )
 
     def __init__(self, port=8080):
@@ -772,6 +796,15 @@ class MjpegServer(threading.Thread):
                     b"Connection: close\r\n"
                     b"Content-Length: " + str(len(self._HTML_PEPPER)).encode() + b"\r\n\r\n"
                     + self._HTML_PEPPER
+                )
+
+            elif path == "/ask.html":
+                conn.sendall(
+                    b"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n"
+                    b"Cache-Control: no-store\r\n"
+                    b"Connection: close\r\n"
+                    b"Content-Length: " + str(len(self._HTML_ASK)).encode() + b"\r\n\r\n"
+                    + self._HTML_ASK
                 )
 
             else:
@@ -1460,8 +1493,9 @@ class PepperGui:
         header.pack(fill=tk.X, side=tk.TOP)
         header.pack_propagate(False)
 
-        tk.Label(header, text="Pepper Control Panel",
-                 font=FONT_H1, bg=SURFACE, fg=TEXT_PRI).pack(side=tk.LEFT, padx=PAD*2, pady=PAD)
+        self.lbl_title = tk.Label(header, text="Pepper Control Panel",
+                                  font=FONT_H1, bg=SURFACE, fg=TEXT_PRI)
+        self.lbl_title.pack(side=tk.LEFT, padx=PAD*2, pady=PAD)
 
         self.badge_conn = StatusBadge(header)
         self.badge_conn.pack(side=tk.RIGHT, padx=PAD*2)
@@ -1665,6 +1699,44 @@ class PepperGui:
         self.btn_pepper_preview.pack(fill=tk.X, padx=P, pady=(0, S))
         if not ENABLE_PEPPER_CAMERA_IN_GUI:
             self.btn_pepper_preview.configure(state=tk.DISABLED)
+
+        # -- Ask-for-object demos (limited / ok / ideal) --
+        ask_card = Card(parent)
+        ask_card.pack(fill=tk.X, pady=(0, S))
+        tk.Label(ask_card, text="Ask for Object (Demo)", font=FONT_BOLD,
+                 bg=SURFACE, fg=TEXT_PRI).pack(anchor="w", padx=P, pady=(S, 2))
+        tk.Frame(ask_card, bg=BORDER, height=1).pack(fill=tk.X, padx=P)
+
+        self.btn_ask_limited = ModernButton(
+            ask_card, text="1. Limited — Point (finger)",
+            state=tk.DISABLED, command=lambda: self.play_ask_demo("limited")
+        )
+        self.btn_ask_limited.pack(fill=tk.X, padx=P, pady=(S, 2))
+
+        self.btn_ask_ok = ModernButton(
+            ask_card, text="2. OK — Stare at table + reach",
+            state=tk.DISABLED, command=lambda: self.play_ask_demo("ok")
+        )
+        self.btn_ask_ok.pack(fill=tk.X, padx=P, pady=(0, 2))
+
+        self.btn_ask_ideal = ModernButton(
+            ask_card, text="3. Ideal — Bend, grab, blink, tablet",
+            accent=True, state=tk.DISABLED,
+            command=lambda: self.play_ask_demo("ideal")
+        )
+        self.btn_ask_ideal.pack(fill=tk.X, padx=P, pady=(0, S))
+
+        # -- NAO dance study (scripted scenarios, Wizard-of-Oz) --
+        nao_card = Card(parent)
+        nao_card.pack(fill=tk.X, pady=(0, S))
+        tk.Label(nao_card, text="NAO Dance Study", font=FONT_BOLD,
+                 bg=SURFACE, fg=TEXT_PRI).pack(anchor="w", padx=P, pady=(S, 2))
+        tk.Frame(nao_card, bg=BORDER, height=1).pack(fill=tk.X, padx=P)
+        self.btn_nao_study = ModernButton(
+            nao_card, text="Open NAO Study Panel", accent=True,
+            command=self.open_nao_study
+        )
+        self.btn_nao_study.pack(fill=tk.X, padx=P, pady=S)
 
         # -- Manual Locomotion card --
         move_card = Card(parent)
@@ -2289,7 +2361,11 @@ class PepperGui:
         self.btn_body_drive.configure(state=tk.NORMAL)
         self.btn_arm_mirror.configure(state=tk.NORMAL)
         self.btn_vr_drive.configure(state=tk.NORMAL)
+        self.btn_ask_limited.configure(state=tk.NORMAL)
+        self.btn_ask_ok.configure(state=tk.NORMAL)
+        self.btn_ask_ideal.configure(state=tk.NORMAL)
         self.log.append("Connected to %s:%d" % (ip, port), SUCCESS)
+        self._apply_robot_profile()
         self.master.after(0, self._wake_pepper_motion_on_main)
 
         # Start speech thread
@@ -2307,6 +2383,8 @@ class PepperGui:
             self.log.append("Pepper camera preview disabled in GUI.", WARNING)
 
     def _start_mode(self, teleoperate):
+        if self._walking_blocked("Search+Approach"):
+            return
         if self.pac and self.pac.is_alive():
             self.lbl_feedback.configure(text="Already running. Press Stop first.")
             return
@@ -2351,6 +2429,8 @@ class PepperGui:
 
     def test_move(self):
         """Fire a raw move(0.25, 0, 0) for 2 s to confirm locomotion API."""
+        if self._walking_blocked("Test Move"):
+            return
         self.log.append("TEST: firing move(0.25,0,0) for 2 s...")
         self.btn_test.configure(state=tk.DISABLED)
 
@@ -2372,7 +2452,105 @@ class PepperGui:
         t.daemon = True
         t.start()
 
+    def play_ask_demo(self, which):
+        """Run a limited / ok / ideal 'ask for object' gesture on Pepper."""
+        if getattr(self, "_ask_demo_busy", False):
+            self.log.append("Ask demo already running — wait for it to finish.", WARNING)
+            return
+        labels = {
+            "limited": "1. Limited (point / finger)",
+            "ok": "2. OK (stare at table + reach)",
+            "ideal": "3. Ideal (bend + grab + blink + tablet)",
+        }
+        label = labels.get(which, which)
+        self._ask_demo_busy = True
+        for btn in (self.btn_ask_limited, self.btn_ask_ok, self.btn_ask_ideal):
+            btn.configure(state=tk.DISABLED)
+        tablet_url = "http://%s:8080/ask.html" % getattr(self, "_mjpeg_ip", "127.0.0.1")
+        self.log.append("Ask demo: starting %s..." % label, ACCENT)
+        if which == "ideal":
+            self.log.append("Ideal tablet URL: %s" % tablet_url, ACCENT)
+
+        def _do():
+            try:
+                msg = play_ask_gesture(
+                    self.session, which,
+                    tablet_url=tablet_url if which == "ideal" else None,
+                )
+                self.log.append(msg or ("Ask demo done: %s" % label), SUCCESS)
+            except Exception as e:
+                self.log.append("Ask demo ERROR: %s" % e, DANGER)
+            finally:
+                def _reenable():
+                    self._ask_demo_busy = False
+                    self.btn_ask_limited.configure(state=tk.NORMAL)
+                    self.btn_ask_ok.configure(state=tk.NORMAL)
+                    self.btn_ask_ideal.configure(state=tk.NORMAL)
+                self.master.after(0, _reenable)
+
+        t = threading.Thread(target=_do)
+        t.daemon = True
+        t.start()
+
+    # ---------------------------------------------------------------- NAO support
+    def _is_nao(self):
+        return getattr(self, "robot_type", None) == "nao"
+
+    def _walking_blocked(self, what):
+        """NAO walks on legs: drive/locomotion commands would make it walk off."""
+        if self._is_nao():
+            self.log.append("%s disabled on NAO (legged robot - no wheel driving)." % what, WARNING)
+            return True
+        return False
+
+    def _apply_robot_profile(self):
+        self.robot_type = detect_robot_type(self.session)
+        self.log.append("Robot type: %s" % self.robot_type, ACCENT)
+        if not self._is_nao():
+            return
+        self.master.title("NAO Control Panel")
+        self.lbl_title.configure(text="NAO Control Panel")
+        for btn in (self.btn_body_drive, self.btn_keyboard_teleop, self.btn_vr_drive,
+                    self.btn_locomotion, self.btn_test, self.btn_tablet,
+                    self.btn_fwd, self.btn_back, self.btn_left, self.btn_right,
+                    self.btn_rotl, self.btn_rotr, self.btn_stopmove,
+                    self.btn_ask_limited, self.btn_ask_ok, self.btn_ask_ideal):
+            btn.configure(state=tk.DISABLED)
+        self.log.append("NAO detected: driving, tablet and Pepper ask-demos disabled. "
+                        "Arm Mirror and the NAO Study Panel are available.", WARNING)
+
+    def _stop_motion_modes(self):
+        """Stop anything else commanding joints before a scripted dance take."""
+        if self.arm_mirror and self.arm_mirror.is_alive():
+            self.toggle_arm_mirror()
+        if self.body_drive and self.body_drive.is_alive():
+            self.toggle_body_drive()
+        if self.vr_drive and self.vr_drive.is_alive():
+            self.toggle_vr_drive()
+        if self.keyboard_teleop_on:
+            self.toggle_keyboard_teleop()
+        if self.pac and self.pac.is_alive():
+            self.stop_pepper()
+
+    def open_nao_study(self):
+        panel = getattr(self, "_nao_panel", None)
+        if panel is not None and not panel.closed:
+            panel.master.lift()
+            return
+        from nao_study_gui import NaoStudyPanel
+        connected = self.btn_connect.cget("state") == tk.DISABLED
+        self._nao_panel = NaoStudyPanel(
+            tk.Toplevel(self.master),
+            session=self.session if connected else None,
+            before_start=self._stop_motion_modes,
+            force_sim=not connected,
+        )
+        self.log.append("NAO Study Panel opened%s." % ("" if connected else " (simulation - not connected)"),
+                        ACCENT)
+
     def _motion_nudge(self, x, y, theta, log_cmd=True):
+        if (x or y or theta) and self._walking_blocked("Locomotion"):
+            return
         try:
             motion = self.session.service("ALMotion")
             motion.moveToward(float(x), float(y), float(theta))
@@ -2491,6 +2669,8 @@ class PepperGui:
         }
 
     def toggle_keyboard_teleop(self):
+        if not self.keyboard_teleop_on and self._walking_blocked("Keyboard teleop"):
+            return
         self.keyboard_teleop_on = not self.keyboard_teleop_on
         if self.keyboard_teleop_on:
             self.btn_keyboard_teleop.configure(text="Disable Keyboard Teleop", bg=DANGER)
@@ -2507,6 +2687,8 @@ class PepperGui:
             self.body_drive = None
             self.btn_body_drive.configure(text="Start Body Drive (Gestures)", bg=SURFACE_2)
             self.log.append("Body Drive OFF.", WARNING)
+            return
+        if self._walking_blocked("Body Drive"):
             return
 
         # Mutually exclusive with VR Drive (both call motion.moveToward and
@@ -2554,6 +2736,8 @@ class PepperGui:
             self.btn_vr_drive.configure(text="VR Drive (Unity Headset)", bg=SURFACE_2)
             self.badge_mode.set_state("IDLE")
             self.log.append("VR Drive OFF.", WARNING)
+            return
+        if self._walking_blocked("VR Drive"):
             return
 
         # Mutually exclusive with Body Drive (both drive motion.moveToward).
@@ -2684,6 +2868,10 @@ class PepperGui:
 
         self._stop_pepper_camera()
 
+        nao_panel = getattr(self, "_nao_panel", None)
+        if nao_panel is not None and not nao_panel.closed:
+            nao_panel.close()
+
         if self.feed_sub is not None:
             self.feed_sub.close()
         self._stop_mediapipe_tracker()
@@ -2753,7 +2941,7 @@ class PepperGui:
         if not self.q_gesture.empty():
             try:
                 cmd = self.q_gesture.get_nowait()
-                if cmd == "switch_mode":
+                if cmd == "switch_mode" and not self._is_nao():
                     arm_on   = self.arm_mirror  is not None and self.arm_mirror.is_alive()
                     drive_on = self.body_drive  is not None and self.body_drive.is_alive()
                     if arm_on:

@@ -56,3 +56,6 @@ UserSettings/
 .env
 .env.*
 *.pem
+
+# -- NAO dance-study take logs (participant data, keep local) ----------------
+study_logs/
