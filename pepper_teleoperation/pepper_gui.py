@@ -58,7 +58,7 @@ from utils.speech_thread import SpeechThread
 from utils.ok_pepper_thread import OkPepperThread
 from utils.pepper_approach_control_thread import PepperApproachControl
 from utils.pepper_ask_gestures import play as play_ask_gesture
-from utils.nao_dance import detect_robot_type
+from utils.nao_dance import detect_robot_type, set_tts_language, ROBOT_LANGUAGE
 
 # ---------------------------------------------------------------------------
 # Design tokens
@@ -2303,6 +2303,7 @@ class PepperGui:
                 self.log.append("AutonomousLife already solitary.", SUCCESS)
         except Exception as e:
             self.log.append("AutonomousLife: %s" % e, WARNING)
+        set_tts_language(self.session, ROBOT_LANGUAGE, lambda m: self.log.append(m))
 
     def _prime_arm_mirror_motors(self):
         try:

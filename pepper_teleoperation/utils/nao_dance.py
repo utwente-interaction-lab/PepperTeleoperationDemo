@@ -91,6 +91,28 @@ MOVES = OrderedDict([
 # One round of the exercise. Edit freely - any key of MOVES works.
 ROUND = ["head", "shoulders", "knees", "toes", "knees", "toes"]
 
+# NAO's speech language. Lab robots are often set to Dutch, which mangles the
+# English lines, so every connection / take switches TTS to this language.
+ROBOT_LANGUAGE = "English"
+
+
+def set_tts_language(session, language=ROBOT_LANGUAGE, log=print):
+    """Switch ALTextToSpeech to `language` if installed. Returns True on success."""
+    try:
+        tts = session.service("ALTextToSpeech")
+        if tts.getLanguage() == language:
+            return True
+        available = tts.getAvailableLanguages()
+        if language not in available:
+            log("[NAO] TTS language '%s' not installed (have: %s)" % (language, ", ".join(available)))
+            return False
+        tts.setLanguage(language)
+        log("[NAO] Speech language set to %s." % language)
+        return True
+    except Exception as e:
+        log("[NAO] Could not set speech language: %s" % e)
+        return False
+
 
 def pose_targets(move):
     """Expand a MOVES entry to (joint_names, angles) for both sides."""
@@ -221,6 +243,7 @@ class NaoRobot(object):
                             "ListeningMovement", "SpeakingMovement"):
                 _safe(lambda: life.setAutonomousAbilityEnabled(ability, False))
         _safe(lambda: self.motion.setBreathEnabled("Body", False))
+        set_tts_language(self.session, ROBOT_LANGUAGE, self.log)
         self.motion.wakeUp()
         self.posture.goToPosture("StandInit", 0.5)
 

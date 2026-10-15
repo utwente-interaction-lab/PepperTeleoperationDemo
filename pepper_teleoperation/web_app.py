@@ -53,8 +53,9 @@ import qi
 # server; it does not open a window.
 import pepper_gui as legacy
 from utils.nao_dance import (
-    DEFAULT_CONFIG, MOVES, ROUND, SCENARIOS,
+    DEFAULT_CONFIG, MOVES, ROBOT_LANGUAGE, ROUND, SCENARIOS,
     DanceController, NaoRobot, SimRobot, detect_robot_type, format_captured_pose,
+    set_tts_language,
 )
 
 WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
@@ -279,6 +280,7 @@ class ControlApp(object):
             self.log("NAO: driving, tablet and Pepper ask-demos are disabled (NAO would walk). "
                      "Arm Mirror and NAO Study are available.", "warn")
         self._wake()
+        set_tts_language(self.session, ROBOT_LANGUAGE, lambda m: self.log(m.replace("[NAO] ", ""), "info"))
         try:
             self.st = legacy.SpeechThread(self.session, self.q_speech, self.q_record, self.q_button)
             self.st.start()

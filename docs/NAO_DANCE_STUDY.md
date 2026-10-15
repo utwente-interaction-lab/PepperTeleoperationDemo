@@ -11,6 +11,10 @@ confederate) deliberately gets it wrong, and NAO responds in one of four ways.
 | **C – Stop & wait** | Finishes the current move, returns to neutral, looks at the participant and waits. Press **Resume** when the participant restarts. |
 | **D – Stop & check in** | Same as C, but asks *"Are you okay? How are you doing?"*. Press **Resume** after they answer; NAO says *"Okay, let's continue together!"* |
 
+NAO speaks **English**: the panel switches NAO's speech language to English
+when it connects and again before each take (lab robots are often set to
+Dutch). To change it, edit `ROBOT_LANGUAGE` in `utils/nao_dance.py`.
+
 After C or D, NAO restarts the round it stopped in (can be switched off).
 Every take is identical up to the trigger, so the response is the only thing
 that differs between the four videos.
